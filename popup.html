@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Capsensfaker</title>
+  <style>
+    :root {
+      --lime:       #C5F000;
+      --lime-dark:  #A8CC00;
+      --teal:       #1C3D39;
+      --teal-mid:   #2D5550;
+      --grey:       #C8D5D8;
+      --grey-light: #EEF4F4;
+      --text:       #1C3D39;
+      --muted:      #6B8E8A;
+      --white:      #FFFFFF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      width: 360px;
+      background: var(--grey-light);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    /* ── Auth screen ── */
+    #authOverlay {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 44px 24px 36px;
+      background: var(--white);
+      min-height: 320px;
+      justify-content: center;
+    }
+    .auth-logo {
+      width: 52px; height: 52px;
+      background: linear-gradient(140deg, var(--teal) 0%, var(--teal-mid) 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 14px rgba(28,61,57,0.2);
+    }
+    .auth-logo-dot {
+      width: 18px; height: 18px;
+      background: var(--lime);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--lime);
+    }
+    .auth-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .auth-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .auth-subtitle strong { color: var(--text); }
+    .btn-google-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 11px 24px;
+      border: 1.5px solid var(--grey);
+      border-radius: 8px;
+      background: var(--white);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+      max-width: 260px;
+    }
+    .btn-google-login:hover { border-color: var(--teal-mid); background: var(--grey-light); }
+    .btn-google-login:active { transform: scale(0.99); }
+    .btn-google-login:disabled { opacity: 0.6; cursor: default; }
+    .auth-error {
+      margin-top: 14px;
+      font-size: 11px;
+      color: #C53030;
+      text-align: center;
+      line-height: 1.5;
+      min-height: 18px;
+    }
+
+    /* ── User badge (in header) ── */
+    .user-badge { display: flex; align-items: center; gap: 5px; }
+    .user-name {
+      font-size: 10px;
+      color: rgba(255,255,255,0.55);
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-logout {
+      border: none;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.45);
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(140deg, var(--teal) 0%, var(--teal-mid) 100%);
+      padding: 14px 16px 0;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .header-brand { display: flex; align-items: center; gap: 7px; }
+    .brand-dot {
+      width: 9px; height: 9px;
+      background: var(--lime);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--lime);
+    }
+    .brand-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .version { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+    /* ── Mode tabs ── */
+    .mode-tabs { display: flex; gap: 2px; }
+    .mode-tab {
+      flex: 1;
+      padding: 8px 4px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .mode-tab.active { color: var(--lime); border-bottom-color: var(--lime); }
+    .mode-tab:hover:not(.active) { color: rgba(255,255,255,0.8); }
+
+    /* ── Inputs bar ── */
+    .inputs-bar {
+      display: flex;
+      align-items: stretch;
+      background: var(--white);
+      border-bottom: 1px solid var(--grey-light);
+    }
+    .input-group {
+      flex: 1;
+      padding: 8px 14px;
+      position: relative;
+    }
+    .input-group::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--lime);
+      transform: scaleX(0);
+      transition: transform 0.2s ease;
+      transform-origin: left;
+    }
+    .input-group:focus-within::after { transform: scaleX(1); }
+    .input-group:focus-within .input-label { color: var(--teal); }
+    .input-sep { width: 1px; background: var(--grey-light); margin: 6px 0; }
+    .input-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin-bottom: 2px;
+      transition: color 0.15s;
+    }
+    .bar-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 12px;
+      color: var(--text);
+      background: transparent;
+      font-family: inherit;
+    }
+    .bar-input::placeholder { color: var(--grey); }
+    .btn-reset-settings {
+      border: none;
+      background: transparent;
+      color: var(--grey);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 12px;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+      border-left: 1px solid var(--grey-light);
+      flex-shrink: 0;
+    }
+    .btn-reset-settings:hover { color: var(--muted); }
+
+    /* ── Generate button (lime) ── */
+    .generate-row {
+      padding: 8px 12px;
+      background: var(--white);
+      border-bottom: 3px solid var(--grey-light);
+    }
+    .btn-generate {
+      width: 100%;
+      padding: 9px;
+      background: var(--lime);
+      color: var(--teal);
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: background 0.15s;
+    }
+    .btn-generate:hover { background: var(--lime-dark); }
+    .btn-generate:active { transform: scale(0.99); }
+
+    /* ── Identity card (lime left accent) ── */
+    .identity-card {
+      background: var(--white);
+      margin: 10px 12px 0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 4px rgba(28,61,57,0.07);
+      border-left: 3px solid var(--lime);
+    }
+    .identity-civilite {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 2px;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 1px 4px;
+      margin-left: -4px;
+      display: inline-block;
+      transition: background 0.12s;
+    }
+    .identity-civilite:hover { background: var(--grey-light); }
+    .identity-civilite:active { background: var(--grey); }
+    .identity-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 1px 4px;
+      margin-left: -4px;
+      display: inline-block;
+      transition: background 0.12s;
+    }
+    .identity-name:hover { background: var(--grey-light); }
+    .identity-name:active { background: var(--grey); }
+    .identity-email {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 1px 4px;
+      margin-left: -4px;
+      display: inline-block;
+      transition: background 0.12s;
+    }
+    .identity-email:hover { background: var(--grey-light); }
+    .identity-email:active { background: var(--grey); }
+    .identity-password {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: monospace;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 1px 4px;
+      margin-left: -4px;
+      display: inline-block;
+      transition: background 0.12s;
+    }
+    .identity-password:hover { background: var(--grey-light); }
+    .identity-password:active { background: var(--grey); }
+    .identity-divider { height: 1px; background: var(--grey-light); margin: 0 -16px 10px; }
+    .identity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+    .identity-field.full { grid-column: 1 / -1; }
+    .field-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--grey);
+      margin-bottom: 1px;
+    }
+    .field-value {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.3;
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 1px 4px;
+      margin: -1px -4px;
+      display: inline-block;
+      transition: background 0.12s;
+    }
+    .field-value:hover { background: var(--grey-light); }
+    .field-value:active { background: var(--grey); }
+
+    /* ── Actions ── */
+    .actions { padding: 10px 12px; display: flex; gap: 8px; }
+    .btn-fill {
+      flex: 1;
+      padding: 11px;
+      background: var(--lime);
+      color: var(--teal);
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-fill:hover { background: var(--lime-dark); }
+    .btn-fill:active { transform: scale(0.98); }
+    .btn-scan {
+      padding: 11px 16px;
+      background: var(--white);
+      color: var(--teal);
+      border: 1.5px solid var(--grey);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-scan:hover { border-color: var(--teal); background: var(--grey-light); }
+
+    /* ── Scan results ── */
+    .scan-panel {
+      background: var(--white);
+      margin: 0 12px;
+      border-radius: 10px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 4px rgba(28,61,57,0.07);
+    }
+    .scan-title {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .scan-item { display: flex; align-items: center; gap: 7px; padding: 3px 0; font-size: 12px; }
+    .scan-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .dot-ready     { background: var(--lime); }
+    .dot-prefilled { background: #F5A623; }
+    .dot-not_found { background: var(--grey); }
+    .dot-skipped   { background: transparent; border: 1.5px solid var(--grey); }
+    .scan-label { flex: 1; color: var(--text); }
+    .scan-status { font-size: 10px; color: var(--muted); }
+
+    /* ── Identity view bottom padding ── */
+    #identityView { padding-bottom: 12px; }
+
+    /* ── Project view ── */
+    #projectView { padding: 12px 12px 12px; }
+    .project-generate-row {
+      background: var(--white);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 4px rgba(28,61,57,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .project-type-tabs { display: flex; gap: 6px; }
+    .project-type-btn {
+      flex: 1;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1.5px solid var(--grey);
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .project-type-btn.active { background: var(--teal); border-color: var(--teal); color: var(--white); }
+
+    /* ── Project card (hero image) ── */
+    .project-card {
+      background: var(--white);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(28,61,57,0.07);
+    }
+    .project-image-wrap {
+      width: 100%;
+      position: relative;
+      background: var(--grey-light);
+    }
+    .project-image-wrap img {
+      width: 100%;
+      display: block;
+      height: 150px;
+      object-fit: cover;
+    }
+    .project-image-scrim {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: linear-gradient(to bottom, transparent, var(--white));
+      pointer-events: none;
+    }
+    .project-card-body { padding: 12px 14px 14px; }
+    .project-card-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 6px;
+    }
+    .project-ai-btn {
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      font-weight: 500;
+      position: relative;
+    }
+    .project-ai-btn:hover { background: var(--grey-light); color: var(--text); }
+    .project-ai-btn.active { color: var(--lime-dark); }
+    .project-ai-btn::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      right: 0;
+      background: var(--teal);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.4;
+      padding: 6px 10px;
+      border-radius: 7px;
+      white-space: normal;
+      width: 200px;
+      text-align: left;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      box-shadow: 0 2px 8px rgba(28,61,57,0.2);
+    }
+    .project-ai-btn::before {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 2px);
+      right: 12px;
+      border: 4px solid transparent;
+      border-top-color: var(--teal);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .project-ai-btn:hover::after,
+    .project-ai-btn:hover::before { opacity: 1; }
+    .project-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .project-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+    .btn-random-img {
+      border: none;
+      background: var(--grey-light);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
+    .btn-random-img:hover { background: var(--grey); color: var(--text); }
+
+    /* ── AI panel ── */
+    .ai-panel {
+      background: var(--grey-light);
+      border-top: 1px solid var(--grey);
+      padding: 12px 14px;
+    }
+    .ai-key-row { display: flex; gap: 6px; margin-bottom: 8px; }
+    .ai-key-input {
+      flex: 1;
+      border: 1.5px solid var(--grey);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 11px;
+      font-family: monospace;
+      outline: none;
+      background: var(--white);
+      color: var(--text);
+    }
+    .ai-key-input:focus { border-color: var(--teal); }
+    .btn-save-key {
+      background: var(--teal);
+      color: var(--white);
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .ai-prompt {
+      width: 100%;
+      border: 1.5px solid var(--grey);
+      border-radius: 6px;
+      padding: 7px 8px;
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      resize: none;
+      background: var(--white);
+      color: var(--text);
+      margin-bottom: 7px;
+    }
+    .ai-prompt:focus { border-color: var(--teal); }
+    .btn-gen-ai {
+      width: 100%;
+      padding: 9px;
+      background: var(--teal);
+      color: var(--white);
+      border: none;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-gen-ai:hover { background: var(--teal-mid); }
+    .btn-gen-ai:disabled { opacity: 0.6; cursor: default; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast (slide up) ── */
+    .toast {
+      position: fixed;
+      bottom: 12px; left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: var(--teal);
+      color: var(--white);
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 99;
+      border-left: 3px solid var(--lime);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth screen -->
+  <div id="authOverlay">
+    <div class="auth-logo"><div class="auth-logo-dot"></div></div>
+    <div class="auth-title">Capsensfaker</div>
+    <div class="auth-subtitle">
+      Réservé à l'équipe Capsens.<br>
+      Connecte-toi avec ton compte <strong>@capsens.eu</strong>.
+    </div>
+    <button class="btn-google-login" id="btnGoogleLogin">
+      <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+        <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/>
+        <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z"/>
+      </svg>
+      Se connecter avec Google
+    </button>
+    <p class="auth-error" id="authError"></p>
+  </div>
+
+  <!-- Main content (shown after auth) -->
+  <div id="mainContent" style="display:none">
+
+    <!-- Header -->
+    <header>
+      <div class="header-top">
+        <div class="header-brand">
+          <div class="brand-dot"></div>
+          <span class="brand-name">Capsensfaker</span>
+        </div>
+        <div class="header-right">
+          <div class="user-badge">
+            <span class="user-name" id="userName"></span>
+            <button class="btn-logout" id="btnLogout" title="Se déconnecter">Logout</button>
+          </div>
+          <span class="version" id="version"></span>
+        </div>
+      </div>
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="pp">Personne physique</button>
+        <button class="mode-tab"        data-mode="pm">Personne morale</button>
+        <button class="mode-tab"        data-mode="projet">Projet</button>
+      </div>
+    </header>
+
+    <!-- Identity view (PP + PM) -->
+    <div id="identityView">
+      <div class="inputs-bar">
+        <div class="input-group">
+          <span class="input-label">Alias</span>
+          <input type="text" class="bar-input" id="alias" placeholder="ex : roman" />
+        </div>
+        <div class="input-sep"></div>
+        <div class="input-group">
+          <span class="input-label">Téléphone</span>
+          <input type="text" class="bar-input" id="phone" placeholder="+33 6 12 34 56 78" />
+        </div>
+        <button class="btn-reset-settings" id="btnResetSettings" title="Effacer alias et téléphone">×</button>
+      </div>
+      <div class="generate-row">
+        <button class="btn-generate" id="btnGenerate">Générer une identité</button>
+      </div>
+
+      <div class="identity-card" id="identityCard"></div>
+
+      <div class="actions">
+        <button class="btn-fill" id="btnFill">Remplir le formulaire</button>
+        <button class="btn-scan" id="btnScan">Analyser</button>
+      </div>
+
+      <div class="scan-panel" id="scanPanel" style="display:none">
+        <div class="scan-title">Champs détectés</div>
+        <div id="scanList"></div>
+      </div>
+    </div>
+
+    <!-- Project view -->
+    <div id="projectView" style="display:none">
+      <div class="project-generate-row">
+        <div class="project-type-tabs">
+          <button class="project-type-btn active" data-ptype="startup">Startup</button>
+          <button class="project-type-btn" data-ptype="immobilier">Immobilier</button>
+        </div>
+        <button class="btn-generate" id="btnRegenProject">Générer un projet</button>
+      </div>
+      <div class="project-card">
+        <!-- Hero image at top -->
+        <div class="project-image-wrap" id="projectImageWrap" style="display:none">
+          <img id="projectImg" src="" alt="" />
+          <div class="project-image-scrim"></div>
+        </div>
+        <!-- Card body -->
+        <div class="project-card-body">
+          <div class="project-card-header">
+            <button class="project-ai-btn" id="btnToggleAI"
+              data-tooltip="Ajoute ta clé API Gemini pour générer des projets avec l'IA plutôt qu'avec les données statiques du faker.">
+              ✦ IA
+            </button>
+          </div>
+          <div class="project-name" id="projectName"></div>
+          <div class="project-desc" id="projectDesc"></div>
+          <button class="btn-random-img" id="btnRandomImg" style="display:none">↻ Photo aléatoire</button>
+        </div>
+        <!-- AI panel -->
+        <div class="ai-panel" id="aiPanel" style="display:none">
+          <div class="ai-key-row">
+            <input type="password" class="ai-key-input" id="apiKey" placeholder="Clé Gemini — AIzaSy…" />
+            <button class="btn-save-key" id="btnSaveKey">Sauver</button>
+          </div>
+          <textarea class="ai-prompt" id="aiPrompt" rows="2" placeholder="Contexte optionnel… ex : green tech en Bretagne"></textarea>
+          <button class="btn-gen-ai" id="btnGenAI">Générer avec Gemini</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /mainContent -->
+
+  <div class="toast" id="toast"></div>
+
+  <script src="faker-data.js"></script>
+  <script src="images.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
