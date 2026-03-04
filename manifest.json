@@ -5,8 +5,8 @@
   "description": "Autocomplete forms with Capsens test data norms + AI project generation",
   "permissions": ["activeTab", "scripting", "storage", "identity"],
   "host_permissions": [
-    "https://generativelanguage.googleapis.com/*",
-    "https://www.googleapis.com/*"
+    "https://generativelanguage.googleapis.com/v1beta/*",
+    "https://www.googleapis.com/oauth2/*"
   ],
   "oauth2": {
     "client_id": "453680564168-kobhtlubqsft8gn6dssr7puo7l44q5cb.apps.googleusercontent.com",
@@ -26,11 +26,5 @@
       "16": "images/icon-16.png",
       "48": "images/icon-48.png"
     }
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["images/startup/*", "images/immobilier/*"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }
