@@ -1,5 +1,10 @@
 // content.js — Capsensfaker
 
+if (window.__capsensfakerLoaded) {
+  // Already injected — skip to avoid duplicate listeners
+} else {
+window.__capsensfakerLoaded = true;
+
 function triggerEvents(el) {
   ['input', 'change', 'blur'].forEach(name =>
     el.dispatchEvent(new Event(name, { bubbles: true }))
@@ -492,6 +497,9 @@ document.addEventListener('focusin', e => {
 
 // ── Message listener ───────────────────────────────────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'ping') {
+    sendResponse({ success: true });
+  }
   if (message.action === 'scan') {
     const results = scanForm(message.data, message.mode || 'pp');
     sendResponse({ success: true, results: results.map(({ element, ...r }) => r) });
@@ -509,3 +517,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
   }
 });
+
+} // end of __capsensfakerLoaded guard

@@ -63,6 +63,22 @@ document.getElementById('btnLogout').addEventListener('click', () => {
 
 // ─────────────────────────────────────────────────────────────
 
+// ── On-demand content script injection ──────────────────────
+function ensureContentScript(tabId) {
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, { action: 'ping' }, (response) => {
+      if (chrome.runtime.lastError || !response?.success) {
+        chrome.scripting.executeScript(
+          { target: { tabId }, files: ['content.js'] },
+          () => resolve(!chrome.runtime.lastError)
+        );
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
+
 let mode = 'pp';
 let currentData = null;
 let projectType = 'startup';
@@ -283,8 +299,10 @@ document.getElementById('identityCard').addEventListener('click', e => {
 
   navigator.clipboard.writeText(value).catch(() => {});
 
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  chrome.tabs.query({ active: true, currentWindow: true }, async ([tab]) => {
     if (!tab) { showToast('✓ Copié'); return; }
+    const ok = await ensureContentScript(tab.id);
+    if (!ok) { showToast('✓ Copié'); return; }
     chrome.tabs.sendMessage(tab.id, { action: 'fillFocused', value }, response => {
       if (chrome.runtime.lastError || !response?.success) {
         showToast('✓ Copié');
@@ -297,8 +315,10 @@ document.getElementById('identityCard').addEventListener('click', e => {
 
 // ── Scan ─────────────────────────────────────────────────────
 document.getElementById('btnScan').addEventListener('click', () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  chrome.tabs.query({ active: true, currentWindow: true }, async ([tab]) => {
     if (!tab) return;
+    const ok = await ensureContentScript(tab.id);
+    if (!ok) { showToast('Impossible de scanner cette page'); return; }
     chrome.tabs.sendMessage(tab.id, { action: 'scan', data: currentData, mode }, response => {
       if (chrome.runtime.lastError || !response?.success) {
         showToast('Impossible de scanner cette page');
@@ -326,8 +346,10 @@ document.getElementById('btnScan').addEventListener('click', () => {
 
 // ── Fill ─────────────────────────────────────────────────────
 document.getElementById('btnFill').addEventListener('click', () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  chrome.tabs.query({ active: true, currentWindow: true }, async ([tab]) => {
     if (!tab) return;
+    const ok = await ensureContentScript(tab.id);
+    if (!ok) { showToast('Impossible de remplir cette page'); return; }
     chrome.tabs.sendMessage(tab.id, { action: 'fill', data: currentData, mode }, response => {
       if (chrome.runtime.lastError || !response?.success) {
         showToast('Impossible de remplir cette page');

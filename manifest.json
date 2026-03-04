@@ -27,12 +27,6 @@
       "48": "images/icon-48.png"
     }
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    }
-  ],
   "web_accessible_resources": [
     {
       "resources": ["images/startup/*", "images/immobilier/*"],
