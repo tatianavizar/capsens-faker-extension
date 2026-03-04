@@ -271,12 +271,6 @@ function getFieldMap(data, mode) {
       autocompleteNames: ['tel', 'tel-national'],
       patterns: ['phone', 'telephone', 'téléphone', 'tel', 'mobile', 'cellphone', 'portable'],
     },
-    {
-      label: 'Pays',
-      value: data.country,
-      autocompleteNames: ['country', 'country-name'],
-      patterns: ['country', 'pays', 'nation', 'nationality', 'nationalite', 'nationalité'],
-    },
   ];
 
   const companyFields = [
@@ -298,8 +292,15 @@ function getFieldMap(data, mode) {
     },
   ];
 
+  const paysField = {
+    label: 'Pays',
+    value: data.country,
+    autocompleteNames: ['country', 'country-name'],
+    patterns: ['country', 'pays', 'nationality', 'nationalite', 'nationalité'],
+  };
+
   if (isPP) {
-    return [...personFields, ...addressFields(data.streetNumPP, data.streetNamePP, data.addressPP, data.cityPP, data.zipPP, 'pp')];
+    return [...personFields, ...addressFields(data.streetNumPP, data.streetNamePP, data.addressPP, data.cityPP, data.zipPP, 'pp'), paysField];
   }
 
   // PM: company + company address, then person + personal address
@@ -308,6 +309,7 @@ function getFieldMap(data, mode) {
     ...addressFields(data.streetNumPM, data.streetNamePM, data.addressPM, data.cityPM, data.zipPM, 'pm'),
     ...personFields,
     ...addressFields(data.streetNumPP, data.streetNamePP, data.addressPP, data.cityPP, data.zipPP, 'pp'),
+    paysField,
   ];
 }
 
