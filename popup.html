@@ -502,8 +502,21 @@
     }
     .project-ai-btn:hover::after,
     .project-ai-btn:hover::before { opacity: 1; }
-    .project-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-    .project-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+    .project-name {
+      font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px;
+      cursor: pointer; border-radius: 4px; padding: 1px 4px; margin-left: -4px;
+      display: inline-block; transition: background 0.12s;
+    }
+    .project-name:hover { background: var(--grey-light); }
+    .project-name:active { background: var(--grey); }
+    .project-desc {
+      font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px;
+      cursor: pointer; border-radius: 4px; padding: 1px 4px; margin-left: -4px;
+      transition: background 0.12s;
+    }
+    .project-desc:hover { background: var(--grey-light); }
+    .project-desc:active { background: var(--grey); }
+    .project-image-wrap img { cursor: pointer; }
     .btn-random-img {
       border: none;
       background: var(--grey-light);

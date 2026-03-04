@@ -364,6 +364,31 @@ document.getElementById('btnRandomImg').addEventListener('click', () => {
   loadRandomImage();
 });
 
+// ── Project click-to-copy + image download ───────────────────
+document.getElementById('projectName').addEventListener('click', () => {
+  const text = document.getElementById('projectName').textContent.trim();
+  if (!text) return;
+  navigator.clipboard.writeText(text).catch(() => {});
+  showToast('✓ Nom copié');
+});
+
+document.getElementById('projectDesc').addEventListener('click', () => {
+  const text = document.getElementById('projectDesc').textContent.trim();
+  if (!text) return;
+  navigator.clipboard.writeText(text).catch(() => {});
+  showToast('✓ Description copiée');
+});
+
+document.getElementById('projectImg').addEventListener('click', () => {
+  const img = document.getElementById('projectImg');
+  if (!img.src) return;
+  if (!confirm('Télécharger cette image ?')) return;
+  const a = document.createElement('a');
+  a.href = img.src;
+  a.download = img.src.split('/').pop() || 'project-image.jpg';
+  a.click();
+});
+
 // ── AI toggle ────────────────────────────────────────────────
 let aiVisible = false;
 document.getElementById('btnToggleAI').addEventListener('click', () => {
