@@ -59,7 +59,15 @@ document.getElementById('btnGoogleLogin').addEventListener('click', () => {
   });
 });
 
-// Logout is handled via settings when auth is re-enabled
+document.getElementById('btnLogout').addEventListener('click', () => {
+  chrome.identity.getAuthToken({ interactive: false }, (token) => {
+    if (token) chrome.identity.removeCachedAuthToken({ token }, () => {});
+  });
+  chrome.storage.local.remove('authedUser', () => {
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('authOverlay').style.display = 'flex';
+  });
+});
 
 // ── On-demand content script injection ──────────────────────
 function ensureContentScript(tabId) {
@@ -795,5 +803,4 @@ function resetPayFillBtn(btn) {
 }
 
 // ── Boot ─────────────────────────────────────────────────────
-// checkAuth();
-showAuthedUI({ email: 'dev@capsens.eu', given_name: 'Dev' });
+checkAuth();
