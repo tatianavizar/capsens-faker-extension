@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Capsensfaker",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Autocomplete forms with Capsens test data norms + AI project generation",
   "permissions": ["activeTab", "scripting", "storage", "identity"],
   "host_permissions": [
@@ -14,6 +14,9 @@
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile"
     ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   },
   "icons": {
     "16": "images/icon-16.png",

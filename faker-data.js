@@ -260,6 +260,31 @@ function generateData(alias = '') {
   };
 }
 
+// ── Payment test data ─────────────────────────────────────
+const TEST_CARDS = {
+  stripe: [
+    { label: 'Visa (succès)',       number: '4242 4242 4242 4242', brand: 'Visa' },
+    { label: 'Mastercard (succès)', number: '5555 5555 5555 4444', brand: 'Mastercard' },
+    { label: 'Visa (refusée)',      number: '4000 0000 0000 0002', brand: 'Visa' },
+  ],
+  lemonway: [
+    { label: 'CB (succès)',         number: '5017 6791 1038 0400', brand: 'CB' },
+    { label: 'Visa FR (succès)',    number: '4600 0000 1000 0400', brand: 'Visa' },
+    { label: 'Mastercard (succès)', number: '5017 6792 1000 0700', brand: 'Mastercard' },
+    { label: 'CB (refusée)',        number: '5017 6791 1038 0905', brand: 'CB' },
+  ],
+  mangopay: [
+    { label: 'Frictionless (succès)', number: '4970 1071 1111 1119', brand: 'Visa' },
+    { label: '3DS Challenge',         number: '4970 1051 8181 8183', brand: 'Visa' },
+  ],
+};
+
+const TEST_IBANS = [
+  { label: 'FR — BNP Paribas',    iban: 'FR76 3000 6000 0112 3456 7890 189', bic: 'BNPAFRPPXXX' },
+  { label: 'FR — Crédit Agricole', iban: 'FR76 1820 6000 1112 3456 7890 168', bic: 'AGRIFRPPXXX' },
+  { label: 'FR — Société Générale',iban: 'FR76 3000 3000 0100 0000 0000 157', bic: 'SOGEFRPPXXX' },
+];
+
 function generateProject(type) {
   if (type === 'immobilier') {
     return {

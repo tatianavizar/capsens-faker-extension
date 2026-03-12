@@ -58,7 +58,7 @@ const CIVILITE_M = ['monsieur', 'mr', 'mr.', 'm.', 'male', 'homme', 'masculin'];
 
 function getLabelTextFor(el) {
   if (el.id) {
-    const label = document.querySelector(`label[for="${el.id}"]`);
+    const label = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
     if (label) return label.textContent.toLowerCase().trim();
   }
   const parent = el.closest('label');
@@ -93,7 +93,7 @@ function fillCivilite(el, isFemale) {
 
   if (el.type === 'radio') {
     // Find all radios in the same group, pick the right one
-    const radios = [...document.querySelectorAll(`input[type="radio"][name="${el.name}"]`)];
+    const radios = [...document.querySelectorAll(`input[type="radio"][name="${CSS.escape(el.name)}"]`)];
     for (const radio of radios) {
       const val   = radio.value.toLowerCase().trim();
       const label = getLabelTextFor(radio);
@@ -432,11 +432,13 @@ function fillForms(data, mode) {
     }
 
     if (field.isCivilite) {
+      const oldValue = el.value;
       const ok = fillCivilite(el, field.isFemale);
-      results.push({ label: field.label, value: field.value, filled: ok });
+      results.push({ label: field.label, value: field.value, filled: ok, oldValue, selector: getSelector(el) });
     } else {
+      const oldValue = el.value;
       fillField(el, field.value);
-      results.push({ label: field.label, value: field.value, filled: true });
+      results.push({ label: field.label, value: field.value, filled: true, oldValue, selector: getSelector(el) });
     }
   }
 
@@ -455,11 +457,13 @@ function fillForms(data, mode) {
         continue;
       }
       if (field.isCivilite) {
+        const oldValue = el.value;
         const ok = fillCivilite(el, field.isFemale);
-        results.push({ label: field.label, value: field.value, filled: ok });
+        results.push({ label: field.label, value: field.value, filled: ok, oldValue, selector: getSelector(el) });
       } else {
+        const oldValue = el.value;
         fillField(el, field.value);
-        results.push({ label: field.label, value: field.value, filled: true });
+        results.push({ label: field.label, value: field.value, filled: true, oldValue, selector: getSelector(el) });
       }
     }
   }
@@ -470,11 +474,12 @@ function fillForms(data, mode) {
     if (isAlreadyFilled(el)) continue;
     const opts = [...el.options].filter(o => o.value && o.value !== '');
     if (opts.length < 2) continue;
+    const oldValue = el.value;
     const pick = opts[Math.floor(Math.random() * opts.length)];
     el.value = pick.value;
     triggerEvents(el);
     usedEls.add(el);
-    results.push({ label: 'Select aléatoire', value: pick.text, filled: true });
+    results.push({ label: 'Select aléatoire', value: pick.text, filled: true, oldValue, selector: getSelector(el) });
   }
 
   return results;
@@ -495,6 +500,80 @@ document.addEventListener('focusin', e => {
   }
 }, true);
 
+// ── Payment field definitions ────────────────────────────
+function getPaymentFieldMap(data) {
+  return [
+    {
+      label: 'Numéro de carte',
+      value: data.cardNumber,
+      autocompleteNames: ['cc-number'],
+      patterns: ['card_number', 'cardnumber', 'card-number', 'cc_number', 'ccnumber', 'cc-number', 'pan', 'numero_carte', 'card_num'],
+    },
+    {
+      label: 'Expiration',
+      value: data.cardExpiry,
+      autocompleteNames: ['cc-exp'],
+      patterns: ['expiry', 'expiration', 'cc_exp', 'cc-exp', 'card_expiry', 'card-expiry', 'exp_date', 'expdate'],
+    },
+    {
+      label: 'Mois d\'expiration',
+      value: data.cardExpMonth,
+      autocompleteNames: ['cc-exp-month'],
+      patterns: ['exp_month', 'expmonth', 'cc-exp-month', 'card_exp_month', 'expiry_month', 'month'],
+    },
+    {
+      label: 'Année d\'expiration',
+      value: data.cardExpYear,
+      autocompleteNames: ['cc-exp-year'],
+      patterns: ['exp_year', 'expyear', 'cc-exp-year', 'card_exp_year', 'expiry_year', 'year'],
+    },
+    {
+      label: 'CVV',
+      value: data.cardCvv,
+      autocompleteNames: ['cc-csc'],
+      patterns: ['cvv', 'cvc', 'csc', 'cc_csc', 'cc-csc', 'security_code', 'card_cvv', 'card_cvc', 'cvv2'],
+    },
+    {
+      label: 'Titulaire de la carte',
+      value: data.cardHolder,
+      autocompleteNames: ['cc-name'],
+      patterns: ['cc_name', 'cc-name', 'card_name', 'cardholder', 'card_holder', 'card-holder', 'titulaire', 'holder_name'],
+    },
+    {
+      label: 'IBAN',
+      value: data.iban,
+      patterns: ['iban', 'bank_iban', 'account_iban'],
+    },
+    {
+      label: 'BIC',
+      value: data.bic,
+      patterns: ['bic', 'swift', 'bic_swift', 'bank_bic', 'swift_code'],
+    },
+  ];
+}
+
+function fillPaymentFields(data) {
+  const fieldMap = getPaymentFieldMap(data);
+  const results = [];
+  const usedEls = new Set();
+
+  for (const field of fieldMap) {
+    const el = findInput(field, usedEls);
+    if (!el) {
+      results.push({ label: field.label, value: field.value, filled: false, reason: 'non trouvé' });
+      continue;
+    }
+    usedEls.add(el);
+    if (isAlreadyFilled(el)) {
+      results.push({ label: field.label, value: field.value, filled: false, reason: 'déjà rempli' });
+      continue;
+    }
+    fillField(el, field.value);
+    results.push({ label: field.label, value: field.value, filled: true });
+  }
+  return results;
+}
+
 // ── Message listener ───────────────────────────────────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'ping') {
@@ -507,6 +586,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'fill') {
     const results = fillForms(message.data, message.mode || 'pp');
     sendResponse({ success: true, results });
+  }
+  if (message.action === 'fillPayment') {
+    const results = fillPaymentFields(message.data);
+    sendResponse({ success: true, results });
+  }
+  if (message.action === 'restoreFields') {
+    for (const entry of message.entries) {
+      const el = document.querySelector(entry.selector);
+      if (el) {
+        fillField(el, entry.oldValue);
+      }
+    }
+    sendResponse({ success: true });
   }
   if (message.action === 'fillFocused') {
     if (lastFocusedEl) {
